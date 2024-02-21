@@ -1,8 +1,6 @@
-// ignore_for_file: unused_import
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -12,68 +10,76 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Çeviri Uygulaması',
+      title: 'Random Word Translator',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: TranslateScreen(),
+      home: RandomWordTranslator(),
     );
   }
 }
 
-class TranslateScreen extends StatefulWidget {
+class RandomWordTranslator extends StatefulWidget {
   @override
-  _TranslateScreenState createState() => _TranslateScreenState();
+  _RandomWordTranslatorState createState() => _RandomWordTranslatorState();
 }
 
-class _TranslateScreenState extends State<TranslateScreen> {
-  TextEditingController _textEditingController = TextEditingController();
-  String _translatedText = '';
+class _RandomWordTranslatorState extends State<RandomWordTranslator> {
+  final Random _random = Random();
+  final Map<String, String> _translationDictionary = {
+    'hello': 'merhaba',
+    'world': 'dünya',
+    'ibrahim': 'ibo',
+    'look': 'bak',
+    'do': 'yaptim:)',
+    // Diğer çevirileri buraya ekleyebilirsiniz
+  };
 
-  Future<void> _translate(String text) async {
-    final response = await http.get(Uri.parse(
-        'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=tr&dt=t&q=$text'));
+  String _randomWord = '';
+  String _translatedWord = '';
 
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      setState(() {
-        _translatedText = decoded[0][0][0];
-      });
-    } else {
-      throw Exception('Failed to load translation');
-    }
+  void _translateRandomWord() {
+    setState(() {
+      _randomWord = _getRandomWord();
+      _translatedWord = _translationDictionary[_randomWord.toLowerCase()] ??
+          'Çeviri bulunamadı';
+    });
+  }
+
+  String _getRandomWord() {
+    final List<String> keys = _translationDictionary.keys.toList();
+    return keys[_random.nextInt(keys.length)];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Çeviri Uygulaması'),
+        title: Text('Random Word Translator'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _textEditingController,
-              decoration: InputDecoration(
-                hintText: 'Çevrilecek metni girin...',
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: _translateRandomWord,
+                child: Text('Rastgele Kelime Getir ve Çevir'),
               ),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                _translate(_textEditingController.text);
-              },
-              child: Text('Çevir'),
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              _translatedText,
-              style: TextStyle(fontSize: 18.0),
-            ),
-          ],
+              SizedBox(height: 20),
+              Text(
+                'İngilizce Kelime: $_randomWord',
+                style: TextStyle(fontSize: 20),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Türkçe Çeviri: $_translatedWord',
+                style: TextStyle(fontSize: 20),
+              ),
+            ],
+          ),
         ),
       ),
     );
